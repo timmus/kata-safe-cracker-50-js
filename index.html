@@ -1,0 +1,132 @@
+<html>
+<body>
+SafeCracker50 Solution - open the console and refresh to see the output
+</body>
+<script type="text/javascript">
+  // -1 is used to indicate a notch in the disk, or no value.
+  // I chose -1 as its two characters so formats well with the other values
+  const disc1 = [6, -1, 6, -1, 8, -1, 8, -1, 16, -1, 19, -1, 8, -1, 17, -1]
+  const disc2inner = [10, 5, 6, 18, 8, 17, 4, 20, 4, 14, 4, 5, 1, 14, 10, 17]
+  const disc2outer = [8, -1, 10, -1, 14, -1, 11, -1, 8, -1, 12, -1, 11, -1, 3, -1]
+  const disc3inner = [13, 0, 22, 19, 10, 0, 5, 20, 8, 19, 10, 15, 20, 12, 20, 13]
+  const disc3outer = [-1, 10, -1, 11, -1, 10, -1, 0, -1, 11, -1, 8, -1, 8, -1, 8]
+  const disc4inner = [20, 12, 1, 10, 12, 22, 0, 5, 8, 5, 1, 24, 8, 10, 20, 7]
+  const disc4outer = [-1, 9, -1, 8, -1, 8, -1, 9, -1, 6, -1, 10, -1, 8, -1, 10]
+  const disc5inner = [18, 10, 10, 10, 10, 15, 7, 19, 18, 2, 9, 27, 13, 11, 13, 10]
+  const disc5outer = [15, 7, 10, 1, 10, 4, 5, 3, 15, 16, 4, 7, 0, 16, 8, 4]
+
+  function solve() {
+    let i = 0
+    for (let disc1column = 0; disc1column < 16; disc1column++) {
+      for (let disc2column = 0; disc2column < 16; disc2column++) {
+        for (let disc3column = 0; disc3column < 16; disc3column++) {
+          for (let disc4column = 0; disc4column < 16; disc4column++) {
+            for (let disc5column = 0; disc5column < 16; disc5column++) {
+              let result = column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 0)
+              i++
+              if (result === 50) {
+                if (
+                  other_columns_solved(disc1column, disc2column, disc3column, disc4column, disc5column)
+                ) {
+                  output_solution(disc1column, disc2column, disc3column, disc4column, disc5column)
+                  console.log(`Took ${i} attempts`)
+                  return true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, offset) {
+    return exposed_val(
+      disc1[next_column(disc1column + offset)],
+      disc2inner[next_column(disc2column + offset)]
+      ) +
+      exposed_val(
+        disc2outer[next_column(disc2column + offset)],
+        disc3inner[next_column(disc3column + offset)]
+      ) +
+      exposed_val(
+        disc3outer[next_column(disc3column + offset)],
+        disc4inner[next_column(disc4column + offset)]
+      ) +
+      exposed_val(
+        disc4outer[next_column(disc4column + offset)],
+        disc5inner[next_column(disc5column + offset)]
+      ) +
+      disc5outer[next_column(disc5column + offset)]
+  }
+
+  function next_column(index) {
+    // there are 16 columns. We are not always starting at column 0
+    // so iterating 16 times means we might need to loop back to the beginning.
+    if (index > 15) {
+      return index - 16
+    }
+    return index
+  }
+
+  function other_columns_solved(disc1column, disc2column, disc3column, disc4column, disc5column){
+    return column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 1) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 2) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 3) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 4) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 5) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 6) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 7) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 8) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 9) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 11) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 12) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 13) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 14) === 50 &&
+      column_solved(disc1column, disc2column, disc3column, disc4column, disc5column, 15) === 50
+  }
+
+  function exposed_val(upper_disk_val, lower_disk_val) {
+    // discs sit on top of each other. Some disks have notches indicated with a -1 value.
+    // if the upper disk has a notch, return the lower disk's value
+    if (upper_disk_val !== -1) {
+      return upper_disk_val
+    }
+
+    return lower_disk_val
+  }
+
+  function output_solution(disc1column, disc2column, disc3column, disc4column, disc5column) {
+    for (let column = 0; column < 16; column++) {
+      output_column(disc1column, disc2column, disc3column, disc4column, disc5column, column)
+    }
+  }
+
+  function output_column(disc1column, disc2column, disc3column, disc4column, disc5column, offset) {
+    console.log(
+      format_val(disc1[next_column(disc1column + offset)]), '  ',
+      format_val(disc2inner[next_column(disc2column + offset)]), '  ',
+      format_val(disc2outer[next_column(disc2column + offset)]), '  ',
+      format_val(disc3inner[next_column(disc3column + offset)]), '  ',
+      format_val(disc3outer[next_column(disc3column + offset)]), '  ',
+      format_val(disc4inner[next_column(disc4column + offset)]), '  ',
+      format_val(disc4outer[next_column(disc4column + offset)]), '  ',
+      format_val(disc5inner[next_column(disc5column + offset)]), '  ',
+      format_val(disc5outer[next_column(disc5column + offset)])
+    )
+  }
+
+  function format_val(val) {
+    // make all values 2 digits for readability
+    if (val === -1) {
+      return '-1'
+    }
+
+    return `0${val}`.slice(-2)
+  }
+
+  console.log(new Date(Date.now()).toLocaleString())
+  solve()
+  console.log(new Date(Date.now()).toLocaleString())
+</script>
+</html>
